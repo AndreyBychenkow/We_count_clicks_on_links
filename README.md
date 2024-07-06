@@ -23,7 +23,7 @@ This script allows you to shorten links via the VK API and get view statistics f
 
 ### Run the script with the command:
 
-`python main.py`
+`python Counting clicks.py`
 
 ### Follow the instructions in the console:
 
