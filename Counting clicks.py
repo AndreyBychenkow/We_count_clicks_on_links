@@ -10,17 +10,14 @@ def shorten_link(token, url):
     method = "utils.getShortLink"
     api_url = urljoin(base_url, method)
     params = {"url": url, "access_token": token, "v": "5.131"}
-    try:
-        response = requests.get(api_url, params=params)
-        response.raise_for_status()
-        response_json = response.json()
-        if "response" in response_json:
-            return response_json["response"]["short_url"]
-        elif "error" in response_json:
-            print(f"Ошибка VK API: {response_json['error']['error_msg']}")
-    except requests.exceptions.RequestException as e:
-        print(f"Ошибка HTTP: {str(e)}")
-    return None
+    response = requests.get(api_url, params=params)
+    response.raise_for_status()
+    response_data = response.json()
+    if "response" in response_data:
+        return response_data["response"]["short_url"]
+    elif "error" in response_data:
+        raise ValueError(
+            f"Ошибка VK API: {response_data['error']['error_msg']}")
 
 
 def get_click_stats(token, url):
@@ -30,36 +27,41 @@ def get_click_stats(token, url):
     key = parsed_url.path.strip("/")
     api_url = urljoin(base_url, method)
     params = {"key": key, "access_token": token, "v": "5.131", "extended": 1}
-    try:
-        response = requests.get(api_url, params=params)
-        response.raise_for_status()
-        response_json = response.json()
-        if "response" in response_json:
-            stats = response_json["response"].get("stats", [])
-            total_views = sum(item.get("views", 0) for item in stats)
-            return total_views
-        elif "error" in response_json:
-            return None
-    except requests.exceptions.RequestException as e:
-        print(f"Ошибка HTTP: {str(e)}")
-    return None
+    response = requests.get(api_url, params=params)
+    response.raise_for_status()
+    response_data = response.json()
+    if "response" in response_data:
+        stats = response_data["response"].get("stats", [])
+        total_views = sum(item.get("views", 0) for item in stats)
+        return total_views
+    elif "error" in response_data:
+        raise ValueError(
+            f"Ошибка VK API: {response_data['error']['error_msg']}")
+
+
+def is_shorten_link(url):
+    parsed_url = urlparse(url)
+    return parsed_url.netloc == "vk.cc"
 
 
 def main():
     load_dotenv()
-    VK_ACCESS_TOKEN = os.environ['ACCESS_TOKEN']
+    vk_service_key = os.environ['VK_SERVICE_KEY']
 
     url = input("Введите ссылку: ")
-    views = get_click_stats(VK_ACCESS_TOKEN, url)
 
-    if views:
-        print(f"Количество просмотров: {views}")
-    else:
-        short_url = shorten_link(VK_ACCESS_TOKEN, url)
-        if short_url:
+    try:
+        if is_shorten_link(url):
+            views = get_click_stats(vk_service_key, url)
+            print(f"Количество просмотров: {views}")
+        else:
+            short_url = shorten_link(vk_service_key, url)
             print(f"Сокращенная ссылка: {short_url}")
+    except requests.exceptions.RequestException as e:
+        print(f"Ошибка HTTP: {str(e)}")
+    except ValueError as e:
+        print(str(e))
 
 
 if __name__ == "__main__":
     main()
-
