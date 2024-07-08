@@ -47,6 +47,7 @@ def is_shorten_link(token, url):
     api_url = urljoin(base_url, method)
     params = {"key": key, "access_token": token, "v": "5.131"}
     response = requests.get(api_url, params=params)
+    response.raise_for_status()
     response_data = response.json()
     if "response" in response_data:
         return True
