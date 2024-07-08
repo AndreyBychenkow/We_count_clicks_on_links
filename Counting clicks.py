@@ -39,9 +39,19 @@ def get_click_stats(token, url):
             f"Ошибка VK API: {response_data['error']['error_msg']}")
 
 
-def is_shorten_link(url):
+def is_shorten_link(token, url):
+    base_url = "https://api.vk.com/method/"
+    method = "utils.getLinkStats"
     parsed_url = urlparse(url)
-    return parsed_url.netloc == "vk.cc"
+    key = parsed_url.path.strip("/")
+    api_url = urljoin(base_url, method)
+    params = {"key": key, "access_token": token, "v": "5.131"}
+    response = requests.get(api_url, params=params)
+    response_data = response.json()
+    if "response" in response_data:
+        return True
+    elif "error" in response_data:
+        return False
 
 
 def main():
@@ -51,7 +61,7 @@ def main():
     url = input("Введите ссылку: ")
 
     try:
-        if is_shorten_link(url):
+        if is_shorten_link(vk_service_key, url):
             views = get_click_stats(vk_service_key, url)
             print(f"Количество просмотров: {views}")
         else:
