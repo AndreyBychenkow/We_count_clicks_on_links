@@ -1,3 +1,4 @@
+import argparse
 import os
 from urllib.parse import urlparse, urljoin
 
@@ -59,7 +60,12 @@ def main():
     load_dotenv()
     vk_service_key = os.environ['VK_SERVICE_KEY']
 
-    url = input("Введите ссылку: ")
+    parser = argparse.ArgumentParser(
+        description='VK API Link Shortener and Stats Retriever')
+    parser.add_argument('url',
+                        help='The URL to be shortened or checked for stats')
+    args = parser.parse_args()
+    url = args.url
 
     try:
         if is_shorten_link(vk_service_key, url):
